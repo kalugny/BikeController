@@ -128,6 +128,7 @@ DIK_RWIN            = 0xDC    # Right Windows key */
 DIK_APPS            = 0xDD    # AppMenu key */
 
 TARGET_RPM = 40.0
+MINIMUM_RPM = 2.0
 INTEGRATION_TIME = 1
 
 shell = win32com.client.Dispatch("WScript.Shell")
@@ -141,22 +142,17 @@ def press_key(key, length):
 def main():
     m = rec.Measure()
     m.start()
-    peak_time = 0
     while True:  
-        if m.peak_time > peak_time:
-            peak_time = m.peak_time
-            print 'RPM =', m.rpm
-            if m.rpm >= TARGET_RPM:
-                press_key(DIK_W, INTEGRATION_TIME)
-            else:
-                t = m.rpm / TARGET_RPM
-                press_key(DIK_W, t)
-                time.sleep(INTEGRATION_TIME - t)
-        else:
+        rpm = m.get_rpm()
+        print 'RPM =', rpm
+        if rpm >= TARGET_RPM:
+            press_key(DIK_W, INTEGRATION_TIME)
+        elif rpm < MINIMUM_RPM:
             time.sleep(INTEGRATION_TIME)
-
-            
-        
+        else:
+            t = rpm / TARGET_RPM
+            press_key(DIK_W, INTEGRATION_TIME * t)
+            time.sleep(INTEGRATION_TIME * (1 - t))
 
 if __name__ == "__main__":
     main()
